@@ -13,6 +13,7 @@ use quote::quote;
 use syn::visit::Visit;
 
 const TIGERBEETLE_RELEASE: &str = "0.16.11";
+const TIGERBEETLE_GIT_COMMIT: &str = "ea8a3e445fd1801d8f5ad1dbd6a9320861053912";
 
 /// Refer to tigerbeetle's build.zig `const platforms`
 fn target_to_lib_dir(target: &str) -> Option<&'static str> {
@@ -106,6 +107,9 @@ fn main() {
             .arg("clients:c")
             .args((!debug).then_some("-Drelease"))
             .arg(format!("-Dtarget={tb_target}"))
+            // otherwise build.zig will attempt to call `git rev-parse --verify HEAD`,
+            // which is not available in our mirrored context
+            .arg(format!("-Dgit-commit={TIGERBEETLE_GIT_COMMIT}"))
             .env("TIGERBEETLE_RELEASE", TIGERBEETLE_RELEASE)
             .current_dir(&tigerbeetle_root)
             .status()
@@ -113,8 +117,8 @@ fn main() {
         assert!(status.success(), "zig build failed with {status:?}");
 
         let c_dir = tigerbeetle_root.join("src/clients/c");
-        let lib_dir = c_dir.join("lib");
-        let link_search = lib_dir.join(target_lib_subdir);
+        let c_lib_dir = c_dir.join("lib");
+        let link_search = c_lib_dir.join(target_lib_subdir);
         println!(
             "cargo:rustc-link-search=native={}",
             link_search
