@@ -8,13 +8,15 @@ description = "Safe high level async bindings to tigerbeetle client library."
 repository.workspace = true
 license.workspace = true
 categories = ["api-bindings", "asynchronous", "database", "finance"]
-include = ["/src/**", "/examples/**", "/Cargo.toml", "/LICENSE-*", "README.md"]
+include = [
+    # "/src/**", 
+    "/examples/**", "/Cargo.toml", "/LICENSE-*", "README.md"]
 
-[features]
-tokio-rt-multi-thread = ["core/tokio-rt-multi-thread"]
+# [features]
+# tokio-rt-multi-thread = ["core/tokio-rt-multi-thread"]
 
 [dependencies]
-core = { package = "tigerbeetle-unofficial-core", version = "0.4.2", path = "core" }
+# core = { package = "tigerbeetle-unofficial-core", version = "0.4.2", path = "core" }
 bytemuck = { version = "1.13.1", features = ["extern_crate_alloc"] }
 tokio = { version = "1.28.1", features = ["sync"] }
 
@@ -22,7 +24,7 @@ tokio = { version = "1.28.1", features = ["sync"] }
 pollster = { version = "0.3.0", features = ["macro"] }
 
 [workspace]
-members = ["sys", "core"]
+members = ["sys", "lib"]
 
 [workspace.package]
 version = "0.4.2+0.16.11"
