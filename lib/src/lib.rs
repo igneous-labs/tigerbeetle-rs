@@ -47,7 +47,7 @@ impl Client {
             )
         };
         match status {
-            TB_STATUS_TB_STATUS_SUCCESS => Ok(unsafe { res.assume_init() }),
+            TB_STATUS::TB_STATUS_SUCCESS => Ok(unsafe { res.assume_init() }),
             status => Err(TbStatusErr::from_u32(status).unwrap()),
         }
     }
