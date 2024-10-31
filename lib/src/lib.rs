@@ -2,9 +2,9 @@ use core::{mem::MaybeUninit, ptr::addr_of_mut};
 
 use num_traits::FromPrimitive;
 use req::on_completion;
-use tigerbeetle_unofficial_sys::generated_safe::StatusErrorKind;
 
 // re-export everything in sys so we can just import this crate
+pub use tigerbeetle_unofficial_sys::generated_safe::*;
 pub use tigerbeetle_unofficial_sys::*;
 
 pub mod consts;

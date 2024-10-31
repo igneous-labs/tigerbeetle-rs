@@ -20,6 +20,7 @@ pin-project = "^1"
 proc-macro2 = { version = "^1", default-features = false }
 quote = { version = "^1", default-features = false }
 syn = { version = "^2", default-features = false }
+tokio = { version = "^1", default-features = false }
 zip = { version = "^0.6", default-features = false }
 
 # workspace members

@@ -110,7 +110,11 @@ fn main() {
             // otherwise build.zig will attempt to call `git rev-parse --verify HEAD`,
             // which is not available in our mirrored context
             .arg(format!("-Dgit-commit={TIGERBEETLE_GIT_COMMIT}"))
-            .env("TIGERBEETLE_RELEASE", TIGERBEETLE_RELEASE)
+            // important: clients with lower versions will not be allowed to interact with cluster
+            // and will have their features restricted to the version they're on
+            .arg(format!("-Dconfig-release={TIGERBEETLE_RELEASE}"))
+            // must set config-release-client-min if -Dconfig-release is set
+            .arg(format!("-Dconfig-release-client-min={TIGERBEETLE_RELEASE}"))
             .current_dir(&tigerbeetle_root)
             .status()
             .expect("running zig build subcommand");
