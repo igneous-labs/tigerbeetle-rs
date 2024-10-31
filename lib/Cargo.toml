@@ -1,5 +1,5 @@
 [package]
-name = "tigerbeetle-unofficial-lib"
+name = "tigerbeetle-unofficial"
 edition = "2021"
 version.workspace = true
 authors.workspace = true
@@ -8,8 +8,6 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
-tigerbeetle-unofficial-sys = { workspace = true }
-bitflags = { workspace = true, default-features = false }
-num-derive = { workspace = true }
-num-traits = { workspace = true }
+tigerbeetle-unofficial-sys = { workspace = true, features = ["generated-safe"] }
+num-traits = { workspace = true, default-features = false }
 pin-project = { workspace = true }

@@ -8,9 +8,11 @@ use std::mem::MaybeUninit;
 
 use num_traits::FromPrimitive;
 use pin_project::pin_project;
-use tigerbeetle_unofficial_sys::{tb_client_submit, tb_client_t, tb_packet_t, TB_PACKET_STATUS};
+use tigerbeetle_unofficial_sys::{
+    generated_safe::PacketStatusErrorKind, tb_client_submit, tb_client_t, tb_packet_t,
+    TB_PACKET_STATUS,
+};
 
-use crate::err::TbPacketErr;
 use crate::resp::RespBuf;
 use crate::Client;
 
@@ -25,7 +27,7 @@ impl Client {
     /// - the C client currently does nothing and never returns if the DB is unreachable (e.g. port closed).
     ///   This method should be at least raced with a `timeout()` fn to ensure recoverability from such a state.
     #[inline]
-    pub async fn request(&self, packet: tb_packet_t) -> Result<RespBuf, TbPacketErr> {
+    pub async fn request(&self, packet: tb_packet_t) -> Result<RespBuf, PacketStatusErrorKind> {
         Req::new(self.ptr, packet).await
     }
 }
@@ -89,7 +91,7 @@ impl Req {
 }
 
 impl Future for Req {
-    type Output = Result<RespBuf, TbPacketErr>;
+    type Output = Result<RespBuf, PacketStatusErrorKind>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this_addr: *const Self = self.as_ref().get_ref();
@@ -121,7 +123,7 @@ impl Future for Req {
                         data.assume_init_drop();
                     }
                     // unwrap-safety: conversion fails only if tb server is buggy
-                    Err(TbPacketErr::from_u8(this.packet.status).unwrap())
+                    Err(PacketStatusErrorKind::from_u8(this.packet.status).unwrap())
                 } else {
                     // box moved out here, MaybeUninit does not double-drop
                     Ok(unsafe { data.assume_init_read() })

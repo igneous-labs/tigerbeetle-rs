@@ -1,17 +1,19 @@
 use core::ptr::null_mut;
 
-use tigerbeetle_unofficial_sys::{tb_packet_t, TB_OPERATION, TB_PACKET_STATUS};
-
-use crate::{
-    consts::MAX_ACCOUNTS_PER_MSG, err::TbPacketErr, resp::lookup_accounts::LookupAccountsResp,
-    Client,
+use tigerbeetle_unofficial_sys::{
+    generated_safe::PacketStatusErrorKind, tb_packet_t, TB_OPERATION, TB_PACKET_STATUS,
 };
+
+use crate::{consts::MAX_ACCOUNTS_PER_MSG, resp::lookup_accounts::LookupAccountsResp, Client};
 
 impl Client {
     /// Caveats:
     /// - those of [`Self::request`] apply
     /// - `accounts.len()` must not exceed [`MAX_ACCOUNTS_PER_MSG`]
-    pub async fn lookup_accounts(&self, ids: &[u128]) -> Result<LookupAccountsResp, TbPacketErr> {
+    pub async fn lookup_accounts(
+        &self,
+        ids: &[u128],
+    ) -> Result<LookupAccountsResp, PacketStatusErrorKind> {
         assert!(ids.len() <= MAX_ACCOUNTS_PER_MSG);
         let packet = tb_packet_t {
             operation: TB_OPERATION::TB_OPERATION_LOOKUP_ACCOUNTS as u8,

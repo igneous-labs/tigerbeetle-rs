@@ -1,10 +1,11 @@
 use std::ptr::null_mut;
 
 use tigerbeetle_unofficial_sys::{
-    tb_account_filter_t, tb_packet_t, TB_OPERATION, TB_PACKET_STATUS,
+    generated_safe::PacketStatusErrorKind, tb_account_filter_t, tb_packet_t, TB_OPERATION,
+    TB_PACKET_STATUS,
 };
 
-use crate::{err::TbPacketErr, resp::lookup_transfers::LookupTransfersResp, Client};
+use crate::{resp::lookup_transfers::LookupTransfersResp, Client};
 
 impl Client {
     /// Caveats:
@@ -13,7 +14,7 @@ impl Client {
     pub async fn get_account_transfers(
         &self,
         filter: &tb_account_filter_t,
-    ) -> Result<LookupTransfersResp, TbPacketErr> {
+    ) -> Result<LookupTransfersResp, PacketStatusErrorKind> {
         let packet = tb_packet_t {
             operation: TB_OPERATION::TB_OPERATION_GET_ACCOUNT_TRANSFERS as u8,
             status: TB_PACKET_STATUS::TB_PACKET_OK as u8,

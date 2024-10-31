@@ -1,11 +1,11 @@
 use std::ptr::null_mut;
 
-use tigerbeetle_unofficial_sys::{tb_packet_t, tb_transfer_t, TB_OPERATION, TB_PACKET_STATUS};
-
-use crate::{
-    consts::MAX_TRANSFERS_PER_MSG, err::TbPacketErr, resp::create_transfers::CreateTransfersResp,
-    Client,
+use tigerbeetle_unofficial_sys::{
+    generated_safe::PacketStatusErrorKind, tb_packet_t, tb_transfer_t, TB_OPERATION,
+    TB_PACKET_STATUS,
 };
+
+use crate::{consts::MAX_TRANSFERS_PER_MSG, resp::create_transfers::CreateTransfersResp, Client};
 
 impl Client {
     /// Caveats:
@@ -14,7 +14,7 @@ impl Client {
     pub async fn create_transfers(
         &self,
         transfers: &[tb_transfer_t],
-    ) -> Result<CreateTransfersResp, TbPacketErr> {
+    ) -> Result<CreateTransfersResp, PacketStatusErrorKind> {
         assert!(transfers.len() <= MAX_TRANSFERS_PER_MSG);
         let packet = tb_packet_t {
             operation: TB_OPERATION::TB_OPERATION_CREATE_TRANSFERS as u8,

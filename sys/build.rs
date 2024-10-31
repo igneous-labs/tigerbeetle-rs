@@ -378,7 +378,7 @@ impl Visit<'_> for TigerbeetleVisitor {
                 );
 
                 self.output.extend(quote! {
-                    #[derive(Debug, Clone, Copy)]
+                    #[derive(Debug, Clone, Copy, num_derive::FromPrimitive, num_derive::ToPrimitive)]
                     #[non_exhaustive]
                     #[repr( #repr_type )]
                     pub enum #new_enum_ident {

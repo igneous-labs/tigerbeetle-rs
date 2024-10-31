@@ -1,17 +1,19 @@
 use std::ptr::null_mut;
 
-use tigerbeetle_unofficial_sys::{tb_packet_t, TB_OPERATION, TB_PACKET_STATUS};
-
-use crate::{
-    consts::MAX_TRANSFERS_PER_MSG, err::TbPacketErr, resp::lookup_transfers::LookupTransfersResp,
-    Client,
+use tigerbeetle_unofficial_sys::{
+    generated_safe::PacketStatusErrorKind, tb_packet_t, TB_OPERATION, TB_PACKET_STATUS,
 };
+
+use crate::{consts::MAX_TRANSFERS_PER_MSG, resp::lookup_transfers::LookupTransfersResp, Client};
 
 impl Client {
     /// Caveats:
     /// - those of [`Self::request`] apply
     /// - `accounts.len()` must not exceed [`MAX_TRANSFERS_PER_MSG`]
-    pub async fn lookup_transfers(&self, ids: &[u128]) -> Result<LookupTransfersResp, TbPacketErr> {
+    pub async fn lookup_transfers(
+        &self,
+        ids: &[u128],
+    ) -> Result<LookupTransfersResp, PacketStatusErrorKind> {
         assert!(ids.len() <= MAX_TRANSFERS_PER_MSG);
         let packet = tb_packet_t {
             operation: TB_OPERATION::TB_OPERATION_LOOKUP_TRANSFERS as u8,

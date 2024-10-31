@@ -1,19 +1,8 @@
 use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64};
 
-use bitflags::bitflags;
-use tigerbeetle_unofficial_sys::tb_account_filter_t;
+use tigerbeetle_unofficial_sys::{generated_safe::AccountFilterFlags, tb_account_filter_t};
 
 use crate::{consts::MAX_TRANSFERS_PER_MSG, u128_id::U128Id};
-
-bitflags! {
-    #[derive(Debug, Clone, Copy)]
-    pub struct AccountFilterFlags: u32 {
-        const NONE = 0;
-        const DEBITS = 1 << 0;
-        const CREDITS = 1 << 1;
-        const REVERSED = 1 << 2;
-    }
-}
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
