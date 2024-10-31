@@ -1,29 +1,5 @@
-[package]
-name = "tigerbeetle-unofficial"
-version.workspace = true
-authors.workspace = true
-edition = "2021"
-rust-version.workspace = true
-description = "Safe high level async bindings to tigerbeetle client library."
-repository.workspace = true
-license.workspace = true
-categories = ["api-bindings", "asynchronous", "database", "finance"]
-include = [
-    # "/src/**", 
-    "/examples/**", "/Cargo.toml", "/LICENSE-*", "README.md"]
-
-# [features]
-# tokio-rt-multi-thread = ["core/tokio-rt-multi-thread"]
-
-[dependencies]
-# core = { package = "tigerbeetle-unofficial-core", version = "0.4.2", path = "core" }
-bytemuck = { version = "1.13.1", features = ["extern_crate_alloc"] }
-tokio = { version = "1.28.1", features = ["sync"] }
-
-[dev-dependencies]
-pollster = { version = "0.3.0", features = ["macro"] }
-
 [workspace]
+resolver = "2"
 members = ["sys", "lib"]
 
 [workspace.package]

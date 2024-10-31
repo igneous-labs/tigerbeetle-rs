@@ -74,7 +74,5 @@ pub fn accounts_to_create<
 >(
     itr: impl IntoIterator<Item = A>,
 ) -> Vec<tb_account_t> {
-    // TODO: This is making problems
-    // itr.into_iter().map(account_to_create).collect()
-    vec![]
+    itr.into_iter().map(account_to_create).collect()
 }
