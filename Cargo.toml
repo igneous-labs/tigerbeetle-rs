@@ -8,3 +8,19 @@ authors = ["Daria Sukhonina <dariasukhonina@gmail.com>"]
 rust-version = "1.78"
 repository = "https://github.com/ZetaNumbers/tigerbeetle-rs"
 license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+bindgen = "^0.65"
+bitflags = { version = "^2", default-features = false }
+bytemuck = { version = "1.13.1", default-features = false }
+curl = "0.4.44"
+num-derive = "^0.4"
+num-traits = "^0.2"
+pin-project = "^1"
+proc-macro2 = { version = "^1", default-features = false }
+quote = { version = "^1", default-features = false }
+syn = { version = "^2", default-features = false }
+zip = { version = "^0.6", default-features = false }
+
+# workspace members
+tigerbeetle-unofficial-sys = { path = "./sys" }
