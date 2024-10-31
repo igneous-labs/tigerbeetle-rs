@@ -1,5 +1,5 @@
 [package]
-name = "lib"
+name = "tigerbeetle-unofficial"
 edition = "2021"
 version.workspace = true
 authors.workspace = true
@@ -7,11 +7,14 @@ rust-version.workspace = true
 repository.workspace = true
 license.workspace = true
 
-[dependencies]
-tigerbeetle-unofficial-sys = { path = "../sys", version = "0.4.2" }
+[features]
+default = []
+live-test = [] # assumes a tigerbeetle cluster is running at localhost port 3000 and tests against that
 
-bindgen = "^0.70"
-bitflags = { version = "^2", default-features = false }
-num-derive = "^0.4"
-num-traits = "^0.2"
-pin-project = "^1"
+[dependencies]
+tigerbeetle-unofficial-sys = { workspace = true, features = ["generated-safe"] }
+num-traits = { workspace = true, default-features = false }
+pin-project = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }

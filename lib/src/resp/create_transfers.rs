@@ -1,7 +1,8 @@
 use num_traits::FromPrimitive;
-use tigerbeetle_unofficial_sys::{tb_create_transfers_result_t, TB_CREATE_TRANSFER_RESULT};
-
-use crate::err::CreateTransferErr;
+use tigerbeetle_unofficial_sys::{
+    generated_safe::CreateTransferErrorKind, tb_create_transfers_result_t,
+    TB_CREATE_TRANSFER_RESULT,
+};
 
 use super::RespBuf;
 
@@ -19,11 +20,13 @@ impl CreateTransfersResp {
 
     /// Yields Ok(index) for successes, Err((index, error)) for failures
     #[inline]
-    pub fn iter_results(&self) -> impl Iterator<Item = Result<u32, (u32, CreateTransferErr)>> + '_ {
+    pub fn iter_results(
+        &self,
+    ) -> impl Iterator<Item = Result<u32, (u32, CreateTransferErrorKind)>> + '_ {
         self.as_slice().iter().map(
             |tb_create_transfers_result_t { result, index }| match *result {
                 TB_CREATE_TRANSFER_RESULT::TB_CREATE_TRANSFER_OK => Ok(*index),
-                n => Err((*index, CreateTransferErr::from_u32(n).unwrap())),
+                n => Err((*index, CreateTransferErrorKind::from_u32(n).unwrap())),
             },
         )
     }

@@ -1,24 +1,10 @@
 use std::borrow::Borrow;
 
-use bitflags::bitflags;
-use tigerbeetle_unofficial_sys::tb_account_t;
+use tigerbeetle_unofficial_sys::{generated_safe::AccountFlags, tb_account_t};
 
 use super::{
     HasCode, HasId, HasLedger, HasTimestamp, HasUserDataU128, HasUserDataU32, HasUserDataU64,
 };
-
-bitflags! {
-    #[derive(Debug, Clone, Copy)]
-    pub struct AccountFlags: u16 {
-        const NONE = 0;
-        const LINKED = 1 << 0;
-        const DEBITS_MUST_NOT_EXCEED_CREDITS = 1 << 1;
-        const CREDITS_MUST_NOT_EXCEED_DEBITS = 1 << 2;
-        const HISTORY = 1 << 3;
-        const IMPORTED = 1 << 4;
-        const CLOSED = 1 << 5;
-    }
-}
 
 pub trait HasAccountFlags {
     fn account_flags(&self) -> AccountFlags;
@@ -74,7 +60,5 @@ pub fn accounts_to_create<
 >(
     itr: impl IntoIterator<Item = A>,
 ) -> Vec<tb_account_t> {
-    // TODO: This is making problems
-    // itr.into_iter().map(account_to_create).collect()
-    vec![]
+    itr.into_iter().map(account_to_create).collect()
 }

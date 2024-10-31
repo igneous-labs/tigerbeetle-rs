@@ -1,7 +1,7 @@
 use num_traits::FromPrimitive;
-use tigerbeetle_unofficial_sys::{tb_create_accounts_result_t, TB_CREATE_ACCOUNT_RESULT};
-
-use crate::err::CreateAccountErr;
+use tigerbeetle_unofficial_sys::{
+    generated_safe::CreateAccountErrorKind, tb_create_accounts_result_t, TB_CREATE_ACCOUNT_RESULT,
+};
 
 use super::RespBuf;
 
@@ -19,11 +19,13 @@ impl CreateAccountsResp {
 
     /// Yields Ok(index) for successes, Err((index, error)) for failures
     #[inline]
-    pub fn iter_results(&self) -> impl Iterator<Item = Result<u32, (u32, CreateAccountErr)>> + '_ {
+    pub fn iter_results(
+        &self,
+    ) -> impl Iterator<Item = Result<u32, (u32, CreateAccountErrorKind)>> + '_ {
         self.as_slice().iter().map(
             |tb_create_accounts_result_t { result, index }| match *result {
                 TB_CREATE_ACCOUNT_RESULT::TB_CREATE_ACCOUNT_OK => Ok(*index),
-                n => Err((*index, CreateAccountErr::from_u32(n).unwrap())),
+                n => Err((*index, CreateAccountErrorKind::from_u32(n).unwrap())),
             },
         )
     }

@@ -49,14 +49,12 @@ impl RespBuf {
         let data_size_usize = data_size as usize;
         match data_size {
             0 => Self {
-                // TODO: Check because I removed const before { MaybeUninit::uninit() };
                 inline_data: [{ MaybeUninit::uninit() }; MAX_INLINE_BYTE_LEN],
                 ptr: null_mut(),
                 byte_len: data_size,
             },
             1..=MAX_INLINE_BYTE_LEN_U32 => {
                 let mut res = Self {
-                    // TODO: Check because I removed const before { MaybeUninit::uninit() };
                     inline_data: [{ MaybeUninit::uninit() }; MAX_INLINE_BYTE_LEN],
                     ptr: null_mut(),
                     byte_len: data_size,
@@ -78,7 +76,6 @@ impl RespBuf {
                     core::ptr::copy_nonoverlapping(data, ptr, data_size_usize);
                 }
                 Self {
-                    // TODO: Check because I removed const before { MaybeUninit::uninit() };
                     inline_data: [{ MaybeUninit::uninit() }; MAX_INLINE_BYTE_LEN],
                     ptr,
                     byte_len: data_size,

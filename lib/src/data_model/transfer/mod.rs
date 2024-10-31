@@ -1,7 +1,6 @@
 use core::{borrow::Borrow, num::NonZeroU128};
 
-use bitflags::bitflags;
-use tigerbeetle_unofficial_sys::tb_transfer_t;
+use tigerbeetle_unofficial_sys::{generated_safe::TransferFlags, tb_transfer_t};
 
 use crate::u128_id::U128Id;
 
@@ -29,23 +28,6 @@ pub trait HasPendingId {
 pub trait HasTimeout {
     /// Must be 0 for non-init-two-phase transfers
     fn timeout(&self) -> u32;
-}
-
-bitflags! {
-    #[derive(Debug, Clone, Copy)]
-    pub struct TransferFlags: u16 {
-        const NONE = 0;
-        const LINKED = 1 << 0;
-        const PENDING = 1 << 1;
-        const POST_PENDING_TRANSFER = 1 << 2;
-        const VOID_PENDING_TRANSFER = 1 << 3;
-        const BALANCING_DEBIT = 1 << 4;
-        const BALANCING_CREDIT = 1 << 5;
-        const CLOSING_DEBIT = 1 << 6;
-        const CLOSING_CREDIT = 1 << 7;
-        const IMPORTED = 1 << 8;
-
-    }
 }
 
 pub trait HasTransferFlags {

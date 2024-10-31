@@ -1,11 +1,11 @@
 use std::ptr::null_mut;
 
-use tigerbeetle_unofficial_sys::{tb_account_t, tb_packet_t, TB_OPERATION, TB_PACKET_STATUS};
-
-use crate::{
-    consts::MAX_ACCOUNTS_PER_MSG, err::TbPacketErr, resp::create_accounts::CreateAccountsResp,
-    Client,
+use tigerbeetle_unofficial_sys::{
+    generated_safe::PacketStatusErrorKind, tb_account_t, tb_packet_t, TB_OPERATION,
+    TB_PACKET_STATUS,
 };
+
+use crate::{consts::MAX_ACCOUNTS_PER_MSG, resp::create_accounts::CreateAccountsResp, Client};
 
 impl Client {
     /// Caveats:
@@ -14,7 +14,7 @@ impl Client {
     pub async fn create_accounts(
         &self,
         accounts: &[tb_account_t],
-    ) -> Result<CreateAccountsResp, TbPacketErr> {
+    ) -> Result<CreateAccountsResp, PacketStatusErrorKind> {
         assert!(accounts.len() <= MAX_ACCOUNTS_PER_MSG);
         let packet = tb_packet_t {
             operation: TB_OPERATION::TB_OPERATION_CREATE_ACCOUNTS as u8,

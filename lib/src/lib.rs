@@ -1,14 +1,14 @@
-use tigerbeetle_unofficial_sys::*;
-
 use core::{mem::MaybeUninit, ptr::addr_of_mut};
 
-use err::TbStatusErr;
 use num_traits::FromPrimitive;
 use req::on_completion;
 
+// re-export everything in sys so we can just import this crate
+pub use tigerbeetle_unofficial_sys::generated_safe::*;
+pub use tigerbeetle_unofficial_sys::*;
+
 pub mod consts;
 pub mod data_model;
-pub mod err;
 pub mod req;
 pub mod resp;
 pub mod u128_id;
@@ -31,7 +31,7 @@ impl Client {
     ///
     /// Invalid examples:
     /// - "localhost:3000"
-    pub fn init(cluster_id: u128, address: &str) -> Result<Self, TbStatusErr> {
+    pub fn init(cluster_id: u128, address: &str) -> Result<Self, StatusErrorKind> {
         let mut res: MaybeUninit<Self> = MaybeUninit::uninit();
         let status = unsafe {
             tb_client_init(
@@ -41,14 +41,14 @@ impl Client {
                 address
                     .len()
                     .try_into()
-                    .map_err(|_e| TbStatusErr::Unexpected)?,
+                    .map_err(|_e| StatusErrorKind::Unexpected)?,
                 0, // null ptr, no need for a global context?
                 Some(on_completion),
             )
         };
         match status {
             TB_STATUS::TB_STATUS_SUCCESS => Ok(unsafe { res.assume_init() }),
-            status => Err(TbStatusErr::from_u32(status).unwrap()),
+            status => Err(StatusErrorKind::from_u32(status).unwrap()),
         }
     }
 }
