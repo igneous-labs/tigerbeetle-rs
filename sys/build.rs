@@ -12,15 +12,29 @@ use std::{
 use quote::quote;
 use syn::visit::Visit;
 
-const TIGERBEETLE_RELEASE: &str = "0.15.3";
+const TIGERBEETLE_RELEASE: &str = "0.16.11";
+const TIGERBEETLE_GIT_COMMIT: &str = "ea8a3e445fd1801d8f5ad1dbd6a9320861053912";
 
+/// Refer to tigerbeetle's build.zig `const platforms`
 fn target_to_lib_dir(target: &str) -> Option<&'static str> {
     match target {
-        "aarch64-unknown-linux-gnu" => Some("aarch64-linux-gnu"),
+        "aarch64-unknown-linux-gnu" => Some("aarch64-linux-gnu.2.27"),
         "aarch64-unknown-linux-musl" => Some("aarch64-linux-musl"),
         "aarch64-apple-darwin" => Some("aarch64-macos"),
-        "x86_64-unknown-linux-gnu" => Some("x86_64-linux-gnu"),
+        "x86_64-unknown-linux-gnu" => Some("x86_64-linux-gnu.2.27"),
         "x86_64-unknown-linux-musl" => Some("x86_64-linux-musl"),
+        "x86_64-apple-darwin" => Some("x86_64-macos"),
+        "x86_64-pc-windows-msvc" => Some("x86_64-windows"),
+        _ => None,
+    }
+}
+
+/// Refer to tigerbeetle's build.zig `const triples`
+fn target_to_tb_target(target: &str) -> Option<&'static str> {
+    match target {
+        "aarch64-unknown-linux-gnu" | "aarch64-unknown-linux-musl" => Some("aarch64-linux"),
+        "x86_64-unknown-linux-gnu" | "x86_64-unknown-linux-musl" => Some("x86_64-linux"),
+        "aarch64-apple-darwin" => Some("aarch64-macos"),
         "x86_64-apple-darwin" => Some("x86_64-macos"),
         "x86_64-pc-windows-msvc" => Some("x86_64-windows"),
         _ => None,
@@ -47,6 +61,8 @@ fn main() {
     } else {
         let target_lib_subdir = target_to_lib_dir(&target)
             .unwrap_or_else(|| panic!("target {target:?} is not supported"));
+        let tb_target = target_to_tb_target(&target)
+            .unwrap_or_else(|| panic!("target {target:?} is not supported"));
 
         let tigerbeetle_root = out_dir.join("tigerbeetle");
         std::fs::remove_dir_all(&tigerbeetle_root)
@@ -61,43 +77,52 @@ fn main() {
         create_mirror(
             "tigerbeetle".as_ref(),
             &tigerbeetle_root,
-            &["src/clients/c/lib", "zig-cache", "zig-out", "zig", ".git"]
+            &["src/clients/c/lib", ".zig-cache", "zig-out", ".git"]
                 .into_iter()
                 .collect(),
         );
 
-        let status = Command::new(
-            tigerbeetle_root
-                .join("scripts/install_zig")
-                .with_extension(SCRIPT_EXTENSION),
-        )
-        .current_dir(&tigerbeetle_root)
-        .status()
-        .expect("running install_zig script");
-        assert!(
-            status.success(),
-            "install_zig script failed with {status:?}"
-        );
+        let zig_cc = tigerbeetle_root
+            .join("zig/zig")
+            .with_extension(env::consts::EXE_EXTENSION);
 
-        let status = Command::new(
-            tigerbeetle_root
-                .join("zig/zig")
-                .with_extension(env::consts::EXE_EXTENSION)
-                .canonicalize()
-                .unwrap(),
-        )
-        .arg("build")
-        .arg("c_client")
-        .args((!debug).then_some("-Drelease"))
-        .arg(format!("-Dtarget={target_lib_subdir}"))
-        .env("TIGERBEETLE_RELEASE", TIGERBEETLE_RELEASE)
-        .current_dir(&tigerbeetle_root)
-        .status()
-        .expect("running zig build subcommand");
+        // download and install zig if doesnt exist, else use existing one in dir
+        if !zig_cc.exists() {
+            let status = Command::new(
+                tigerbeetle_root
+                    .join("zig/download")
+                    .with_extension(SCRIPT_EXTENSION),
+            )
+            .current_dir(&tigerbeetle_root)
+            .status()
+            .expect("running zig download script");
+            assert!(
+                status.success(),
+                "zig download script failed with {status:?}"
+            );
+        }
+
+        let status = Command::new(zig_cc.canonicalize().unwrap())
+            .arg("build")
+            .arg("clients:c")
+            .args((!debug).then_some("-Drelease"))
+            .arg(format!("-Dtarget={tb_target}"))
+            // otherwise build.zig will attempt to call `git rev-parse --verify HEAD`,
+            // which is not available in our mirrored context
+            .arg(format!("-Dgit-commit={TIGERBEETLE_GIT_COMMIT}"))
+            // important: clients with lower versions will not be allowed to interact with cluster
+            // and will have their features restricted to the version they're on
+            .arg(format!("-Dconfig-release={TIGERBEETLE_RELEASE}"))
+            // must set config-release-client-min if -Dconfig-release is set
+            .arg(format!("-Dconfig-release-client-min={TIGERBEETLE_RELEASE}"))
+            .current_dir(&tigerbeetle_root)
+            .status()
+            .expect("running zig build subcommand");
         assert!(status.success(), "zig build failed with {status:?}");
 
-        let lib_dir = tigerbeetle_root.join("src/clients/c/lib");
-        let link_search = lib_dir.join(target_lib_subdir);
+        let c_dir = tigerbeetle_root.join("src/clients/c");
+        let c_lib_dir = c_dir.join("lib");
+        let link_search = c_lib_dir.join(target_lib_subdir);
         println!(
             "cargo:rustc-link-search=native={}",
             link_search
@@ -106,8 +131,8 @@ fn main() {
         );
         println!("cargo:rustc-link-lib=static=tb_client");
 
-        wrapper = lib_dir.join("include/wrapper.h");
-        let generated_header = lib_dir.join("include/tb_client.h");
+        wrapper = c_dir.join("wrapper.h");
+        let generated_header = c_dir.join("tb_client.h");
         assert!(
             std::fs::read_to_string(&generated_header).expect("reading generated `tb_client.h`")
                 == std::fs::read_to_string("src/tb_client.h")
@@ -191,6 +216,8 @@ impl Visit<'_> for TigerbeetleVisitor {
                     _ => break 'process,
                 }
             }
+            // order by enum variant discriminant
+            variants.sort_by_key(|(_, _, discm)| *discm);
 
             'remove_variant_prefix: {
                 while !variants.iter().all(|(n, _, _)| n.starts_with(prefix_enum)) {
@@ -216,7 +243,7 @@ impl Visit<'_> for TigerbeetleVisitor {
             if enum_name.ends_with("_FLAGS") {
                 let ty = syn::Ident::new(
                     match enum_name.as_str() {
-                        "TB_ACCOUNT_FILTER_FLAGS" => "u32",
+                        "TB_ACCOUNT_FILTER_FLAGS" | "TB_QUERY_FILTER_FLAGS" => "u32",
                         "TB_ACCOUNT_FLAGS" | "TB_TRANSFER_FLAGS" => "u16",
                         other => panic!("unexpected flags type name: {other}"),
                     },
@@ -286,9 +313,13 @@ impl Visit<'_> for TigerbeetleVisitor {
 
                 let mut variants_iter = variants.iter();
                 let mut j = variants_iter.next().unwrap().2;
-                for (_, _, i) in variants_iter {
+                for (ident_str, _ident, i) in variants_iter {
                     j += 1;
-                    assert_eq!(*i, j);
+                    assert_eq!(
+                        *i, j,
+                        "Expected next variant {} in sequence to be j+1 = {}, but got {}",
+                        ident_str, j, *i
+                    );
                 }
 
                 let minmax_prefix = enum_name
@@ -351,7 +382,7 @@ impl Visit<'_> for TigerbeetleVisitor {
                 );
 
                 self.output.extend(quote! {
-                    #[derive(Debug, Clone, Copy)]
+                    #[derive(Debug, Clone, Copy, num_derive::FromPrimitive, num_derive::ToPrimitive)]
                     #[non_exhaustive]
                     #[repr( #repr_type )]
                     pub enum #new_enum_ident {

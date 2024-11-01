@@ -1,0 +1,20 @@
+[package]
+name = "tigerbeetle-unofficial"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[features]
+default = []
+live-test = [] # assumes a tigerbeetle cluster is running at localhost port 3000 and tests against that
+
+[dependencies]
+tigerbeetle-unofficial-sys = { workspace = true, features = ["generated-safe"] }
+num-traits = { workspace = true, default-features = false }
+pin-project = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
