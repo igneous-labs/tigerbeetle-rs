@@ -10,16 +10,20 @@ license.workspace = true
 categories = ["external-ffi-bindings"]
 
 [features]
-generated-safe = []
+generated-safe = ["dep:bitflags", "dep:num-derive", "dep:num-traits"]
 
 [dependencies]
-bitflags = "2.3.0"
-bytemuck = { version = "1.13.1", features = ["derive", "min_const_generics"] }
+bytemuck = { workspace = true, features = ["derive", "min_const_generics"] }
+
+# generated-safe
+bitflags = { workspace = true, optional = true }
+num-derive = { workspace = true, optional = true }
+num-traits = { workspace = true, optional = true, default-features = false }
 
 [build-dependencies]
-bindgen = "0.65.1"
-curl = "0.4.44"
-zip = { version = "0.6.5", features = ["deflate"], default-features = false }
-syn = { version = "2.0.28", features = ["parsing", "full", "printing", "visit"], default-features = false }
-quote = { version = "1.0.27", default-features = false }
-proc-macro2 = { version = "1.0.57", default-features = false }
+bindgen = { workspace = true }
+curl = { workspace = true }
+zip = { workspace = true, features = ["deflate"], default-features = false }
+syn = { workspace = true, features = ["parsing", "full", "printing", "visit"], default-features = false }
+quote = { workspace = true, default-features = false }
+proc-macro2 = { workspace = true, default-features = false }
